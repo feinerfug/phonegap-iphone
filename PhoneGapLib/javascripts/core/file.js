@@ -137,32 +137,32 @@ FileMgr.prototype = {
      */
     reader_onloadstart:function(filePath,result)
     {
-    	this.fileReaders[filePath].result = unescape(result);
+    	this.fileReaders[filePath].result = decodeURIComponent(result);
     	var evt = File._createEvent("loadstart", this.fileReaders[filePath]);
     	this.fileReaders[filePath].onloadstart(evt);
     },
 
     reader_onprogress:function(filePath,result){
-    	this.fileReaders[filePath].result = unescape(result);
+    	this.fileReaders[filePath].result = decodeURIComponent(result);
     	var evt = File._createEvent("progress", this.fileReaders[filePath]);
     	this.fileReaders[filePath].onprogress(evt);
     },
 
     reader_onload:function(filePath,result){
-    	this.fileReaders[filePath].result = unescape(result);
+    	this.fileReaders[filePath].result = decodeURIComponent(result);
     	var evt = File._createEvent("load", this.fileReaders[filePath]);
     	this.fileReaders[filePath].onload(evt);
     },
 
     reader_onerror:function(filePath,err){
     	this.fileReaders[filePath].result = err;
-    	this.fileReaders[filePath].result = unescape(result);
+    	this.fileReaders[filePath].result = decodeURIComponent(result);
     	var evt = File._createEvent("error", this.fileReaders[filePath]);
     	this.fileReaders[filePath].onerror(evt);
     },
 
     reader_onloadend:function(filePath,result){
-        this.fileReaders[filePath].result = unescape(result);
+        this.fileReaders[filePath].result = decodeURIComponent(result);
         var evt = File._createEvent("loadend", this.fileReaders[filePath]);
     	this.fileReaders[filePath].onloadend(evt);
     },
