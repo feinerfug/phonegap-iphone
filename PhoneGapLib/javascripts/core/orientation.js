@@ -1,3 +1,4 @@
+
 /**
  * This class provides access to the device orientation.
  * @constructor
@@ -12,17 +13,31 @@ function Orientation() {
 /**
  * Set the current orientation of the phone.  This is called from the device automatically.
  * 
- * When the orientation is changed, the DOMEvent \c orientationChanged is dispatched against
- * the document element.  The event has the property \c orientation which can be used to retrieve
- * the device's current orientation, in addition to the \c Orientation.currentOrientation class property.
+ * When the orientation is starting to change the DOMEvent \c
+ * orientationChanging is dispatched against the document
+ * element. When the orientation has changed, the DOMEvent \c
+ * orientationChanged is dispatched against the document element.
+ * Both events have the property \c orientation which can be used to
+ * retrieve the device's current orientation, in addition to the \c
+ * Orientation.currentOrientation class property.
  *
  * @param {Number} orientation The orientation to be set
  */
 Orientation.prototype.setOrientation = function(orientation) {
     Orientation.currentOrientation = orientation;
+};
+
+Orientation.prototype.triggerOrientationChanging = function () {
+    var e = document.createEvent('Events');
+    e.initEvent('orientationChanging', 'false', 'false');
+    e.orientation = Orientation.currentOrientation;
+    document.dispatchEvent(e);
+};
+
+Orientation.prototype.triggerOrientationChanged = function () {
     var e = document.createEvent('Events');
     e.initEvent('orientationChanged', 'false', 'false');
-    e.orientation = orientation;
+    e.orientation = Orientation.currentOrientation;
     document.dispatchEvent(e);
 };
 

@@ -38,8 +38,9 @@
 }
 
 /**
- Called by UIKit when the device starts to rotate to a new orientation.  This fires the \c setOrientation
- method on the Orientation object in JavaScript.  Look at the JavaScript documentation for more information.
+ Called by UIKit when the device starts to rotate to a new orientation.  This fires the \c setOrientation and the 
+ \c triggerOrientationChanging method on the Orientation object in JavaScript.  Look at the JavaScript documentation 
+ for more information.
  */
 - (void)willRotateToInterfaceOrientation: (UIInterfaceOrientation)toInterfaceOrientation duration: (NSTimeInterval)duration {
 	double i = 0;
@@ -59,6 +60,15 @@
 			break;
 	}
 	[webView stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"navigator.orientation.setOrientation(%f);", i]];
+	[webView stringByEvaluatingJavaScriptFromString:@"navigator.orientation.triggerOrientationChanging();"];
+}
+
+/**
+ Called by the UIKit whe the device has rotated to a new orientation. This fires the \c triggerOrientationChanged 
+ method on the Orientation object in Javascript.
+ */
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
+	[webView stringByEvaluatingJavaScriptFromString:@"navigator.orientation.triggerOrientationChanged()"];
 }
 
 - (void) setWebView:(UIWebView*) theWebView {
