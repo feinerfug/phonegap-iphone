@@ -17,5 +17,8 @@
 @property (nonatomic, retain) 	NSArray* supportedOrientations;
 @property (nonatomic, retain)	UIWebView* webView;
 
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation) interfaceOrientation; 
+- (void)willRotateToInterfaceOrientation: (UIInterfaceOrientation)toInterfaceOrientation duration: (NSTimeInterval)duration;
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation;
 
 @end

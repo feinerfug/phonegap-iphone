@@ -25,37 +25,7 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation) interfaceOrientation 
 {
-	// First ask the webview via JS if it wants to support the new orientation -jm
-	int i = 0;
-	
-	switch (interfaceOrientation){
-
-		case UIInterfaceOrientationPortraitUpsideDown:
-			i = 180;
-			break;
-		case UIInterfaceOrientationLandscapeLeft:
-			i = -90;
-			break;
-		case UIInterfaceOrientationLandscapeRight:
-			i = 90;
-			break;
-		default:
-		case UIInterfaceOrientationPortrait:
-			// noop
-			break;
-	}
-	
-	NSString* jsCall = [ NSString stringWithFormat:@"shouldRotateToOrientation(%d);",i];
-	NSString* res = [webView stringByEvaluatingJavaScriptFromString:jsCall];
-	
-	if([res length] > 0)
-	{
-		return [res boolValue];
-	}
-	
-	// if js did not handle the new orientation ( no return value ) we will look it up in the plist -jm
-	
-	BOOL autoRotate = [self.supportedOrientations count] > 0; // autorotate if only more than 1 orientation supported
+	BOOL autoRotate = [self.supportedOrientations count] > 1; // autorotate if only more than 1 orientation supported
 	if (autoRotate)
 	{
 		if ([self.supportedOrientations containsObject:
@@ -70,14 +40,14 @@
 }
 
 /**
- Called by UIKit when the device starts to rotate to a new orientation.  This fires the \c setOrientation
- method on the Orientation object in JavaScript.  Look at the JavaScript documentation for more information.
+ Called by UIKit when the device starts to rotate to a new orientation.  This fires the \c setOrientation and the 
+ \c triggerOrientationChanging method on the Orientation object in JavaScript.  Look at the JavaScript documentation 
+ for more information.
  */
-- (void)didRotateFromInterfaceOrientation: (UIInterfaceOrientation)fromInterfaceOrientation
-{
-	int i = 0;
+- (void)willRotateToInterfaceOrientation: (UIInterfaceOrientation)toInterfaceOrientation duration: (NSTimeInterval)duration {
+	double i = 0;
 	
-	switch (self.interfaceOrientation){
+	switch (toInterfaceOrientation){
 		case UIInterfaceOrientationPortrait:
 			i = 0;
 			break;
@@ -91,10 +61,16 @@
 			i = 90;
 			break;
 	}
-	
-	NSString* jsCallback = [NSString stringWithFormat:@"window.__defineGetter__('orientation',function(){return %d;});window.onorientationchange();",i];
-	[webView stringByEvaluatingJavaScriptFromString:jsCallback];
-	 
+	[webView stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"navigator.orientation.setOrientation(%f);", i]];
+	[webView stringByEvaluatingJavaScriptFromString:@"navigator.orientation.triggerOrientationChanging();"];
+}
+
+/**
+ Called by the UIKit whe the device has rotated to a new orientation. This fires the \c triggerOrientationChanged 
+ method on the Orientation object in Javascript.
+ */
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
+	[webView stringByEvaluatingJavaScriptFromString:@"navigator.orientation.triggerOrientationChanged()"];
 }
 
 - (void) setWebView:(UIWebView*) theWebView {
