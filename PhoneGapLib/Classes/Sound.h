@@ -10,54 +10,33 @@
 #import <AudioToolbox/AudioServices.h>
 #import <AVFoundation/AVFoundation.h>
 
+#import "AudioFile.h"
 #import "PhoneGapCommand.h"
 
-@interface AudioFile : NSObject
-{
-	NSString* successCallback;
-	NSString* errorCallback;
-	NSString* downloadCompleteCallback;
-	NSString* resourcePath;
-	NSURL* resourceURL;
-	AVAudioPlayer* player;
-#ifdef __IPHONE_3_0
-	AVAudioRecorder* recorder;
-#endif
-}
-
-@property (nonatomic, copy) NSString* resourcePath;
-@property (nonatomic, copy) NSURL* resourceURL;
-@property (nonatomic, copy) NSString* successCallback;
-@property (nonatomic, copy) NSString* errorCallback;
-@property (nonatomic, copy) NSString* downloadCompleteCallback;
-@property (nonatomic, retain) AVAudioPlayer* player;
-
-#ifdef __IPHONE_3_0
-@property (nonatomic, retain) AVAudioRecorder* recorder;
-#endif
-
-@end
+@class AudioFile;
 
 @interface Sound : PhoneGapCommand 
-<AVAudioPlayerDelegate
-#ifdef __IPHONE_3_0
-, AVAudioRecorderDelegate
-#endif
->
 {
 	NSMutableDictionary* soundCache;
-	AudioFile* audFile;
 }
 
 - (void) play:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
 - (void) pause:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
 - (void) stop:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
+- (void) playAndFadeIn:(NSMutableArray*)arguments withDict:(NSMutableArray*)options;
+- (void) fadeOutAndStop:(NSMutableArray*)arguments withDict:(NSMutableArray*)options;
 - (NSURL*) urlForResource:(NSString*)resourcePath;
 - (AudioFile*) audioFileForResource:(NSString*) resourcePath;
 
-#ifdef __IPHONE_3_0
-- (void) startAudioRecord:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
-- (void) stopAudioRecord:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
-#endif
+- (void) addToSoundCache:(AudioFile*)audioFile;
+- (AudioFile*) getFromSoundCache:(NSString*)resourcePath;
+- (void) removeFromSoundCache:(AudioFile*)audioFile;
+- (void) createSoundCache;
+
+- (AudioFile*) audioFileFor:(NSMutableArray*)arguments;
+- (AudioFile*) audioFileForResource:(NSString*)resourcePath;
+- (NSString*) resourceForUrl:(NSURL*)url;
+- (AudioFile*) setCallbacksFor:(AudioFile*)audioFile from:(NSMutableArray*)arguments;
 
 @end
+
