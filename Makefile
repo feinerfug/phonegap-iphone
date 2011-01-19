@@ -55,3 +55,7 @@ uninstall:
 	else \
 	echo "" ; \
 	fi	
+
+install:
+	installer -pkg PhoneGapLibInstaller.pkg -target CurrentUserHomeDirectory
+

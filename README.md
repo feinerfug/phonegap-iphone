@@ -8,14 +8,14 @@ Make sure you have installed the latest iPhone SDK. Download at [http://develope
 
 Build and install the Installer Package
 -------------------------------------------------------------
-1. Launch "Terminal.app"
-2. Navigate to the folder where Makefile is (this folder)
-3. Type in "make" then press Enter
 
-The installer should build "PhoneGapLibInstaller.pkg" into this folder, then:
+1. Quit XCode if it's open.
+2. Launch "Terminal.app"
+3. Navigate to the folder where Makefile is (this folder)
+4. Type in "make" then press Enter - this makes the installer package
+5. Type in "make install" then press Enter - this installs PhoneGapLib and XCode Templates from the package.
 
-1. Quit Xcode
-2. Launch "PhoneGapLibInstaller.pkg" to install PhoneGapLib and the PhoneGap Xcode Template.
+You can also launch "PhoneGapLibInstaller.pkg" and use the graphical installer instead of "make install"
 
 Create a PhoneGap project
 -------------------------------------------------------------
