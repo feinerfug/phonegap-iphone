@@ -117,7 +117,7 @@
   }
 	
   NSError *error;
-  AudioFile* audioFile = [[[AudioFile alloc] init] autorelease];;
+  AudioFile* audioFile = [[[AudioFile alloc] initWithSound:self] autorelease];;
   audioFile.resourcePath = resourcePath;
   audioFile.resourceURL = resourceURL;
 		
