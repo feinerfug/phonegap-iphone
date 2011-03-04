@@ -13,8 +13,8 @@
 
 #import "Location.h"
 #import "Sound.h"
-#import "Contacts.h"
-#import "Contact.h"
+
+
 #import "DebugConsole.h"
 //#import "Image.h"
 
@@ -50,6 +50,7 @@
 }
 
 @property (nonatomic, retain) UIWindow *window;
+@property (nonatomic, retain) UIWebView *webView;
 @property (nonatomic, retain) PhoneGapViewController *viewController;
 @property (nonatomic, retain) UIActivityIndicatorView *activityView;
 @property (nonatomic, retain) NSMutableDictionary *commandObjects;
