@@ -20,14 +20,28 @@ MediaError.MEDIA_ERR_NONE_SUPPORTED = 4;
  */
 
 function Media(src, successCallback, errorCallback, downloadCompleteCallback) {
-    this.src = src;
-    this.successCallback = successCallback;
-    this.errorCallback = errorCallback;
-    this.downloadCompleteCallback = downloadCompleteCallback;
+	
+	if (!src) {
+		src = "documents://" + String((new Date()).getTime()).replace(/\D/gi,''); // random
+	}
+	this.src = src;
+	var successCB = (successCallback == undefined || successCallback == null) ? null : GetFunctionName(successCallback);
+	var errorCB = (errorCallback == undefined || errorCallback == null) ? null : GetFunctionName(errorCallback);
+	var downloadCB = (downloadCompleteCallback == undefined || downloadCompleteCallback == null) ? null : GetFunctionName(downloadCompleteCallback);
+	
+	this.successCallback = successCallback || null;
+	this.errorCallback = errorCallback || null;	
+	this.downloadCompleteCallback = downloadCompleteCallback || null;
     
-    if (this.src != null) {
-	PhoneGap.exec("Sound.prepare", this.src, this.successCallback, this.errorCallback, this.downloadCompleteCallback);
-    }
+	if (this.src != null) {
+		PhoneGap.exec("Sound.prepare", this.src, successCB, errorCB, downloadCB);
+	}
+}
+ 
+Media.prototype.play = function(options) {
+	if (this.src != null) {
+		PhoneGap.exec("Sound.play", this.src, options);
+	}
 }
 
 Media.fadeInCallbacks = {};

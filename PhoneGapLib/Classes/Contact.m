@@ -8,6 +8,7 @@
 
 
 #import <Contact.h>
+#import <Categories.h>
 #import <PhoneGapDelegate.h>
 
 #define DATE_OR_NULL(dateObj) ( (aDate != nil) ? (id)([aDate descriptionWithLocale: [NSLocale currentLocale]]) : (id)([NSNull null]) )
@@ -22,17 +23,21 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 @implementation Contact : NSObject
 
 @synthesize record;
-@synthesize contactId;
 @synthesize returnFields;
    
+- (id) init
+{
+	if ((self = [super init]) != nil)
+		self.record = ABPersonCreate();
+	return self;
+}
 - (id) initFromABRecord:(ABRecordRef)aRecord
 {
 	if ((self = [super init]) != nil) 
 		self.record = CFRetain(aRecord);
-	return self;
-	
-	
+	return self;	
 }
+
 
 /* Rather than creating getters and setters for each AddressBook (AB) Property, generic methods are used to deal with
  * simple properties,  MultiValue properties( phone numbers and emails) and MultiValueDictionary properties (Ims and addresses).
@@ -49,31 +54,30 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 {
 	if (com_phonegap_contacts_ABtoW3C == nil) {
 		com_phonegap_contacts_ABtoW3C = [NSDictionary dictionaryWithObjectsAndKeys: 
-			   kW3ContactNickname, [NSNumber numberWithInt: kABPersonNicknameProperty], 
-			   kW3ContactGivenName, [NSNumber numberWithInt: kABPersonFirstNameProperty],
-			   kW3ContactFamilyName, [NSNumber numberWithInt: kABPersonLastNameProperty],
-			   kW3ContactMiddleName, [NSNumber numberWithInt: kABPersonMiddleNameProperty],
-			   kW3ContactHonorificPrefix, [NSNumber numberWithInt: kABPersonPrefixProperty],
-			   kW3ContactHonorificSuffix, [NSNumber numberWithInt: kABPersonSuffixProperty],
-			   kW3ContactPhoneNumbers, [NSNumber numberWithInt: kABPersonPhoneProperty],
-			   kW3ContactAddresses,	[NSNumber numberWithInt: kABPersonAddressProperty],
-			   kW3ContactStreetAddress, kABPersonAddressStreetKey,
-			   kW3ContactLocality, kABPersonAddressCityKey,
-			   kW3ContactRegion, kABPersonAddressStateKey,
-			   kW3ContactPostalCode, kABPersonAddressZIPKey,
-			   kW3ContactCountry, kABPersonAddressCountryKey,
-			   kW3ContactEmails, [NSNumber numberWithInt: kABPersonEmailProperty],
-			   kW3ContactIms, [NSNumber numberWithInt: kABPersonInstantMessageProperty],
-			   kW3ContactOrganizations, [NSNumber numberWithInt: kABPersonOrganizationProperty],
-			   kW3ContactOrganizationName, [NSNumber numberWithInt: kABPersonOrganizationProperty],
-			   kW3ContactTitle,	[NSNumber numberWithInt: kABPersonJobTitleProperty],
-			   kW3ContactDepartment, [NSNumber numberWithInt:kABPersonDepartmentProperty],
-			   kW3ContactPublished, [NSNumber numberWithInt: kABPersonCreationDateProperty],
-			   kW3ContactUpdated, [NSNumber numberWithInt: kABPersonModificationDateProperty],
-			   kW3ContactBirthday, [NSNumber numberWithInt: kABPersonBirthdayProperty],
-			   kW3ContactAnniversary,kABPersonAnniversaryLabel,
-			   kW3ContactNote, [NSNumber numberWithInt: kABPersonNoteProperty],
-			   nil];
+										 kW3ContactNickname, [NSNumber numberWithInt: kABPersonNicknameProperty], 
+										 kW3ContactGivenName, [NSNumber numberWithInt: kABPersonFirstNameProperty],
+										 kW3ContactFamilyName, [NSNumber numberWithInt: kABPersonLastNameProperty],
+										 kW3ContactMiddleName, [NSNumber numberWithInt: kABPersonMiddleNameProperty],
+										 kW3ContactHonorificPrefix, [NSNumber numberWithInt: kABPersonPrefixProperty],
+										 kW3ContactHonorificSuffix, [NSNumber numberWithInt: kABPersonSuffixProperty],
+										 kW3ContactPhoneNumbers, [NSNumber numberWithInt: kABPersonPhoneProperty],
+										 kW3ContactAddresses,	[NSNumber numberWithInt: kABPersonAddressProperty],
+										 kW3ContactStreetAddress, kABPersonAddressStreetKey,
+										 kW3ContactLocality, kABPersonAddressCityKey,
+										 kW3ContactRegion, kABPersonAddressStateKey,
+										 kW3ContactPostalCode, kABPersonAddressZIPKey,
+										 kW3ContactCountry, kABPersonAddressCountryKey,
+										 kW3ContactEmails, [NSNumber numberWithInt: kABPersonEmailProperty],
+										 kW3ContactIms, [NSNumber numberWithInt: kABPersonInstantMessageProperty],
+										 kW3ContactOrganizations, [NSNumber numberWithInt: kABPersonOrganizationProperty],
+										 kW3ContactOrganizationName, [NSNumber numberWithInt: kABPersonOrganizationProperty],
+										 kW3ContactTitle,	[NSNumber numberWithInt: kABPersonJobTitleProperty],
+										 kW3ContactDepartment, [NSNumber numberWithInt:kABPersonDepartmentProperty],
+										 kW3ContactUpdated, [NSNumber numberWithInt: kABPersonModificationDateProperty],
+										 kW3ContactBirthday, [NSNumber numberWithInt: kABPersonBirthdayProperty],
+										 kW3ContactUrls,[NSNumber numberWithInt: kABPersonURLProperty],
+										 kW3ContactNote, [NSNumber numberWithInt: kABPersonNoteProperty],
+										 nil];
 		// these dictionaries get invalidated without the retain, although running with GuardMalloc shows no memory overwrites???
 		[com_phonegap_contacts_ABtoW3C retain];
 	}
@@ -84,37 +88,37 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 {
 	if (com_phonegap_contacts_W3CtoAB == nil){
 		com_phonegap_contacts_W3CtoAB = [NSDictionary dictionaryWithObjectsAndKeys: 
-			   [NSNumber numberWithInt: kABPersonNicknameProperty], kW3ContactNickname,
+				[NSNumber numberWithInt: kABPersonNicknameProperty], kW3ContactNickname,
 				[NSNumber numberWithInt: kABPersonFirstNameProperty],kW3ContactGivenName, 
-			    [NSNumber numberWithInt: kABPersonLastNameProperty],kW3ContactFamilyName,
-			    [NSNumber numberWithInt: kABPersonMiddleNameProperty],kW3ContactMiddleName,
-			   [NSNumber numberWithInt: kABPersonPrefixProperty], kW3ContactHonorificPrefix,
-			    [NSNumber numberWithInt: kABPersonSuffixProperty],kW3ContactHonorificSuffix,
-			    [NSNumber numberWithInt: kABPersonPhoneProperty],kW3ContactPhoneNumbers,
-			   	[NSNumber numberWithInt: kABPersonAddressProperty],kW3ContactAddresses,
-			    kABPersonAddressStreetKey,kW3ContactStreetAddress,
-			    kABPersonAddressCityKey,kW3ContactLocality,
-			   kABPersonAddressStateKey, kW3ContactRegion,
-			   kABPersonAddressZIPKey,kW3ContactPostalCode, 
-			    kABPersonAddressCountryKey,kW3ContactCountry,
-			    [NSNumber numberWithInt: kABPersonEmailProperty],kW3ContactEmails,
-			   [NSNumber numberWithInt: kABPersonInstantMessageProperty],kW3ContactIms, 
-			   [NSNumber numberWithInt: kABPersonOrganizationProperty],kW3ContactOrganizations,
-			   	[NSNumber numberWithInt: kABPersonJobTitleProperty],kW3ContactTitle,
-			    [NSNumber numberWithInt:kABPersonDepartmentProperty],kW3ContactDepartment,
-			   [NSNumber numberWithInt: kABPersonCreationDateProperty], kW3ContactPublished,
-			    [NSNumber numberWithInt: kABPersonModificationDateProperty],kW3ContactUpdated,
-			    [NSNumber numberWithInt: kABPersonBirthdayProperty],kW3ContactBirthday,
-			   kABPersonAnniversaryLabel, kW3ContactAnniversary,
-			   [NSNumber numberWithInt: kABPersonNoteProperty],kW3ContactNote,
-			kABPersonInstantMessageUsernameKey,  kW3ContactImValue,
-			   kABPersonInstantMessageServiceKey, kW3ContactImType,
-			   [NSNull null], kW3ContactFieldType, /* include entries in dictionary to indicate ContactField properties */
-			   [NSNull null], kW3ContactFieldValue,
-			   [NSNull null], kW3ContactFieldPrimary,
-			   [NSNull null], kW3ContactFieldId,
-			 [NSNumber numberWithInt: kABPersonOrganizationProperty], kW3ContactOrganizationName, /* careful, name is used mulitple times*/
-			   nil];
+				[NSNumber numberWithInt: kABPersonLastNameProperty],kW3ContactFamilyName,
+				[NSNumber numberWithInt: kABPersonMiddleNameProperty],kW3ContactMiddleName,
+				[NSNumber numberWithInt: kABPersonPrefixProperty], kW3ContactHonorificPrefix,
+				[NSNumber numberWithInt: kABPersonSuffixProperty],kW3ContactHonorificSuffix,
+				[NSNumber numberWithInt: kABPersonPhoneProperty],kW3ContactPhoneNumbers,
+				[NSNumber numberWithInt: kABPersonAddressProperty],kW3ContactAddresses,
+				kABPersonAddressStreetKey,kW3ContactStreetAddress,
+				kABPersonAddressCityKey,kW3ContactLocality,
+				kABPersonAddressStateKey, kW3ContactRegion,
+				kABPersonAddressZIPKey,kW3ContactPostalCode, 
+				kABPersonAddressCountryKey,kW3ContactCountry,
+				[NSNumber numberWithInt: kABPersonEmailProperty],kW3ContactEmails,
+				[NSNumber numberWithInt: kABPersonInstantMessageProperty],kW3ContactIms, 
+				[NSNumber numberWithInt: kABPersonOrganizationProperty],kW3ContactOrganizations,
+				[NSNumber numberWithInt: kABPersonJobTitleProperty],kW3ContactTitle,
+				[NSNumber numberWithInt:kABPersonDepartmentProperty],kW3ContactDepartment,
+				[NSNumber numberWithInt: kABPersonModificationDateProperty],kW3ContactUpdated,
+				[NSNumber numberWithInt: kABPersonBirthdayProperty],kW3ContactBirthday,
+				[NSNumber numberWithInt: kABPersonNoteProperty],kW3ContactNote,
+				[NSNumber numberWithInt: kABPersonURLProperty], kW3ContactUrls,
+				kABPersonInstantMessageUsernameKey,  kW3ContactImValue,
+				kABPersonInstantMessageServiceKey, kW3ContactImType,
+				[NSNull null], kW3ContactFieldType, /* include entries in dictionary to indicate ContactField properties */
+				[NSNull null], kW3ContactFieldValue,
+				[NSNull null], kW3ContactFieldPrimary,
+				[NSNull null], kW3ContactFieldId,
+				[NSNull null], kW3ContactTimezone,
+				[NSNumber numberWithInt: kABPersonOrganizationProperty], kW3ContactOrganizationName, /* careful, name is used mulitple times*/
+				nil];
 		[com_phonegap_contacts_W3CtoAB retain];
 	}
 	return com_phonegap_contacts_W3CtoAB;
@@ -124,10 +128,8 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	
 	// these are values that have no AddressBook Equivalent OR have not been implemented yet
 	if (com_phonegap_contacts_W3CtoNull == nil){
-		com_phonegap_contacts_W3CtoNull = [NSSet setWithObjects: kW3ContactDisplayName, kW3ContactGender, kW3ContactPreferredUsername,
-				kW3ContactFormattedName, kW3ContactStartDate, kW3ContactEndDate, kW3ContactLocation, KW3ContactDescription,
-				kW3ContactTags, kW3ContactRelationships, kW3ContactUrls, kW3ContactAccounts,
-				kW3ContactUtcOffset, kW3ContactConnected, nil];
+		com_phonegap_contacts_W3CtoNull = [NSSet setWithObjects: kW3ContactDisplayName, kW3ContactGender,
+				kW3ContactCategories, kW3ContactFormattedName, kW3ContactStartDate, kW3ContactEndDate, kW3ContactLocation, KW3ContactDescription, nil];
 	[com_phonegap_contacts_W3CtoNull retain];
 	}
 	return com_phonegap_contacts_W3CtoNull;
@@ -143,11 +145,12 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 													 [NSArray arrayWithObjects: kW3ContactGivenName,kW3ContactFamilyName,
 													  kW3ContactMiddleName, kW3ContactHonorificPrefix, kW3ContactHonorificSuffix, kW3ContactFormattedName, nil],kW3ContactName,
 													 [NSArray arrayWithObjects: kW3ContactStreetAddress, kW3ContactLocality,kW3ContactRegion,
-													  kW3ContactPostalCode, kW3ContactCountry,kW3ContactAddressFormatted,nil], kW3ContactAddresses,
+													  kW3ContactPostalCode, kW3ContactCountry,/*kW3ContactAddressFormatted,*/nil], kW3ContactAddresses,
 													 [NSArray arrayWithObjects:kW3ContactOrganizationName, kW3ContactTitle, kW3ContactDepartment,kW3ContactStartDate, kW3ContactEndDate, KW3ContactDescription,kW3ContactLocation, nil],kW3ContactOrganizations,
 													 [NSArray arrayWithObjects:kW3ContactFieldType, kW3ContactFieldValue, kW3ContactFieldPrimary,nil], kW3ContactPhoneNumbers,
 													 [NSArray arrayWithObjects:kW3ContactFieldType, kW3ContactFieldValue, kW3ContactFieldPrimary,nil], kW3ContactEmails,
 													 [NSArray arrayWithObjects:kW3ContactFieldType, kW3ContactFieldValue, kW3ContactFieldPrimary,nil], kW3ContactPhotos,
+													 [NSArray arrayWithObjects:kW3ContactFieldType, kW3ContactFieldValue, kW3ContactFieldPrimary,nil], kW3ContactUrls,
 													 [NSArray arrayWithObjects: kW3ContactImValue, kW3ContactImType, nil], kW3ContactIms,
 													 nil];
 		[com_phonegap_contacts_objectAndProperties retain];
@@ -165,12 +168,12 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 			[[Contact defaultObjectAndProperties] objectForKey: kW3ContactPhoneNumbers], kW3ContactPhoneNumbers,
 			[[Contact defaultObjectAndProperties] objectForKey: kW3ContactEmails], kW3ContactEmails,
 			[[Contact defaultObjectAndProperties] objectForKey: kW3ContactIms], kW3ContactIms,
-			[NSNull null], kW3ContactPublished,
+			[[Contact defaultObjectAndProperties] objectForKey: kW3ContactPhotos], kW3ContactPhotos,
+			[[Contact defaultObjectAndProperties] objectForKey: kW3ContactUrls], kW3ContactUrls,
 			[NSNull null],kW3ContactUpdated,
 			[NSNull null],kW3ContactBirthday,
-			[NSNull null], kW3ContactAnniversary,
 			[NSNull null],kW3ContactNote,
-			[NSNull null],kW3ContactPhotos,
+			[NSNull null], kW3ContactTimezone,
 			nil];
 		[com_phonegap_contacts_defaultFields retain];
 
@@ -219,11 +222,11 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 {
 	
 	if (![aContact isKindOfClass:[NSDictionary class]]){
-		return nil; // can't do anything if no dictionary!
+		return FALSE; // can't do anything if no dictionary!
 	}
 	
 	ABRecordRef person = self.record;
-	bool bSuccess= FALSE;
+	bool bSuccess= TRUE;
 	CFErrorRef error;
 	
 	// set name info
@@ -235,7 +238,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 		NSArray* propArray = [[Contact defaultObjectAndProperties] objectForKey: kW3ContactName];
 		for(id i in propArray){
 			if (![(NSString*)i isEqualToString:kW3ContactFormattedName]){  //kW3ContactFormattedName is generated from ABRecordCopyCompositeName() and can't be set
-				bSuccess = [self setValue:[dict valueForKey:i] forProperty: (ABPropertyID)[(NSNumber*)[[Contact defaultW3CtoAB] objectForKey: i]intValue] 
+				[self setValue:[dict valueForKey:i] forProperty: (ABPropertyID)[(NSNumber*)[[Contact defaultW3CtoAB] objectForKey: i]intValue] 
 					inRecord: person asUpdate: bUpdate];
 			}
 		}
@@ -244,11 +247,11 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	id nn = [aContact valueForKey:kW3ContactNickname];
 	if (![nn isKindOfClass:[NSNull class]]){
 		bName = true;
-		bSuccess = [self setValue: nn forProperty: kABPersonNicknameProperty inRecord: person asUpdate: bUpdate];
+		[self setValue: nn forProperty: kABPersonNicknameProperty inRecord: person asUpdate: bUpdate];
 	}
 	if (!bName){
 		// if no name or nickname - try and use displayName as W3Contact must have displayName or ContactName
-		bSuccess = [self setValue:[aContact valueForKey:kW3ContactDisplayName] forProperty: kABPersonNicknameProperty 
+		[self setValue:[aContact valueForKey:kW3ContactDisplayName] forProperty: kABPersonNicknameProperty 
 						 inRecord: person asUpdate: bUpdate];
 	}
 	
@@ -256,14 +259,21 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	//NSLog(@"setting phoneNumbers");
 	NSArray* array = [aContact valueForKey:kW3ContactPhoneNumbers];
 	if ([array isKindOfClass:[NSArray class]]){
-		bSuccess = [self setMultiValueStrings: array forProperty: kABPersonPhoneProperty inRecord: person asUpdate: bUpdate];
+		[self setMultiValueStrings: array forProperty: kABPersonPhoneProperty inRecord: person asUpdate: bUpdate];
 	}
 	// set Emails
 	//NSLog(@"setting emails");
 	array = [aContact valueForKey:kW3ContactEmails];
 	if ([array isKindOfClass:[NSArray class]]){
-		bSuccess = [self setMultiValueStrings: array forProperty: kABPersonEmailProperty inRecord: person asUpdate: bUpdate];
+		[self setMultiValueStrings: array forProperty: kABPersonEmailProperty inRecord: person asUpdate: bUpdate];
 	}
+	// set Urls
+	//NSLog(@"setting urls");
+	array = [aContact valueForKey:kW3ContactUrls];
+	if ([array isKindOfClass:[NSArray class]]){
+		[self setMultiValueStrings: array forProperty: kABPersonURLProperty inRecord: person asUpdate: bUpdate];
+	}
+	
 	// set multivalue dictionary properties
 	// set addresses:  streetAddress, locality, region, postalCode, country
 	// set ims:  value = username, type = servicetype
@@ -272,13 +282,13 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	error = nil;
 	array = [aContact valueForKey:kW3ContactAddresses];
 	if ([array isKindOfClass:[NSArray class]]){
-		bSuccess = [self setMultiValueDictionary: array forProperty: kABPersonAddressProperty inRecord: person asUpdate: bUpdate];
+		[self setMultiValueDictionary: array forProperty: kABPersonAddressProperty inRecord: person asUpdate: bUpdate];
 	}
 	//ims
 	//NSLog(@"setting ims");
 	array = [aContact valueForKey:kW3ContactIms];
 	if ([array isKindOfClass:[NSArray class]]){
-		bSuccess = [self setMultiValueDictionary: array forProperty: kABPersonInstantMessageProperty inRecord: person asUpdate: bUpdate];
+		[self setMultiValueDictionary: array forProperty: kABPersonInstantMessageProperty inRecord: person asUpdate: bUpdate];
 	}
 	
 	// organizations
@@ -289,9 +299,9 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	if ([array isKindOfClass:[NSArray class]]){
 		NSDictionary* dict = [array objectAtIndex:0];
 		if ([dict isKindOfClass:[NSDictionary class]]){
-			bSuccess = [self setValue: [dict valueForKey:@"name"] forProperty: kABPersonOrganizationProperty inRecord: person asUpdate: bUpdate];
-			bSuccess = [self setValue: [dict valueForKey:kW3ContactTitle] forProperty:  kABPersonJobTitleProperty inRecord: person asUpdate: bUpdate];
-			bSuccess = [self setValue: [dict valueForKey:kW3ContactDepartment] forProperty: kABPersonDepartmentProperty inRecord: person asUpdate: bUpdate];
+			[self setValue: [dict valueForKey:@"name"] forProperty: kABPersonOrganizationProperty inRecord: person asUpdate: bUpdate];
+			[self setValue: [dict valueForKey:kW3ContactTitle] forProperty:  kABPersonJobTitleProperty inRecord: person asUpdate: bUpdate];
+			[self setValue: [dict valueForKey:kW3ContactDepartment] forProperty: kABPersonDepartmentProperty inRecord: person asUpdate: bUpdate];
 		}
 	}
 	// add dates
@@ -304,7 +314,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 		aDate = [NSDate dateWithTimeIntervalSince1970: msValue];
 	}
 	if (aDate != nil || [ms isKindOfClass:[NSString class]]) {
-		bSuccess = [self setValue: aDate != nil ? aDate : ms forProperty: kABPersonBirthdayProperty inRecord: person asUpdate: bUpdate];
+		[self setValue: aDate != nil ? aDate : ms forProperty: kABPersonBirthdayProperty inRecord: person asUpdate: bUpdate];
 	}
 	// don't update creation date
 	// modifiction date will get updated when save
@@ -318,7 +328,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	
 	// iOS doesn't have gender - ignore
 	// note
-	bSuccess = [self setValue: [aContact valueForKey:kW3ContactNote] forProperty: kABPersonNoteProperty inRecord: person asUpdate: bUpdate];
+	[self setValue: [aContact valueForKey:kW3ContactNote] forProperty: kABPersonNoteProperty inRecord: person asUpdate: bUpdate];
 	
 	
 	// iOS doesn't have preferredName- ignore
@@ -356,21 +366,13 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 		}
 	}
 	 
-	// TODO tags / cagetgories
-
-	// relationships - removed from W3C Contact api Dec 9, 2010 spec - don't waste time on it yet
-	
+		
 	// TODO WebURLs
 	
-	// online accounts - not available on iOS - ignore
 	
-	// TODO UTCOffset
-	
-	// connected - removed from W3C Contact api Dec 9, 2010 spec - don't waste time on it yet
+	// TODO timezone
 	
 	return bSuccess;
-	
-	
 }
 /* Set item into an AddressBook Record for the specified property.
  * aValue - the value to set into the address book (code checks for null or [NSNull null]
@@ -403,7 +405,9 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	CFErrorRef err;
 	bool bSuccess = ABRecordRemoveValue(aRecord, aProperty, &err);
 	if(!bSuccess){
-		NSLog(@"Unable to remove property %@: %@", aProperty, CFErrorCopyDescription(err));
+		CFStringRef errDescription = CFErrorCopyDescription(err);
+		NSLog(@"Unable to remove property %@: %@", aProperty, errDescription );
+		CFRelease(errDescription);
 	}
 	return bSuccess;
 }
@@ -421,13 +425,13 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	return bSuccess;
 }
 	
--(ABMultiValueRef) createStringMultiValueFromArray: array 
+-(ABMultiValueRef) allocStringMultiValueFromArray: array 
 {
 	ABMutableMultiValueRef multi = ABMultiValueCreateMutable(kABMultiStringPropertyType);
 	for (NSDictionary *dict in array){
 		[self addToMultiValue: multi fromDictionary: dict];
 	}
-	return multi;
+	return multi;  //caller is responsible for releasing multi
 }
 -(bool) setValue: (CFTypeRef) value  forProperty: (ABPropertyID)prop inRecord: (ABRecordRef)person
 {
@@ -460,7 +464,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	ABMutableMultiValueRef multi = nil;
 
 	if (!bUpdate){
-		multi = [self createStringMultiValueFromArray: fieldArray];
+		multi = [self allocStringMultiValueFromArray: fieldArray];
 		bSuccess = [self setValue: multi forProperty:prop inRecord: person];
 	} else if (bUpdate && [fieldArray count] == 0){
 		// remove entire property
@@ -488,15 +492,15 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 							NSString* valueAB = [(NSString*)ABMultiValueCopyValueAtIndex(multi, i) autorelease];
 							NSString* labelAB = [(NSString*)ABMultiValueCopyLabelAtIndex(multi, i) autorelease];
 							if (valueAB == nil || ![val isEqualToString: valueAB]){
-								bSuccess = ABMultiValueReplaceValueAtIndex(multi, val, i);
+								ABMultiValueReplaceValueAtIndex(multi, val, i);
 							}
 							if (labelAB == nil || ![label isEqualToString:labelAB]){
-								bSuccess = ABMultiValueReplaceLabelAtIndex(multi, (CFStringRef)label, i);
+								ABMultiValueReplaceLabelAtIndex(multi, (CFStringRef)label, i);
 							}
 						}
 					} else {
 						// is a new value - insert
-						bSuccess = [self addToMultiValue: multi fromDictionary: dict];
+						[self addToMultiValue: multi fromDictionary: dict];
 					}
 					
 				} // end of if value
@@ -504,7 +508,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 			} //end of for
 		
 		} else { // adding all new value(s) 
-			multi = [self createStringMultiValueFromArray: fieldArray];
+			multi = [self allocStringMultiValueFromArray: fieldArray];
 		}
 		// set the (updated) copy as the new value
 		bSuccess = [self setValue: multi forProperty:prop inRecord: person];
@@ -516,26 +520,9 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	
 	return bSuccess;
 }	
-/* set multivalue dictionary properties into an AddressBook Record
- * NSArray* array - array of dictionaries containing the W3C properties to set into the record
- * ABPropertyID prop - the AddressBook property id
- * ABRecordRef person - the record to set the values into
- * BOOL bUpdate - YES if this is an update to an existing record
- *	When updating:
- *	  emtpy array indicates to remove entire property
- *	  value/label == "" indicates to remove
- *    value/label == [NSNull null] do not modify (keep existing record value) 
- * RETURN
- *   bool false indicates fatal error
- *
- *  iOS addresses and im are a MultiValue Properties with label, value=dictionary of  info, and id
- *  set addresses:  streetAddress, locality, region, postalCode, country
- *  set ims:  value = username, type = servicetype
- *  there are some special cases in here for ims - needs cleanup / simplification
- *  
-*/
+
 // used for ims and addresses
--(ABMultiValueRef) createDictMultiValueFromArray: array forProperty: (ABPropertyID) prop
+-(ABMultiValueRef) allocDictMultiValueFromArray: array forProperty: (ABPropertyID) prop
 {
 	ABMutableMultiValueRef multi = ABMultiValueCreateMutable(kABMultiDictionaryPropertyType);
 	NSMutableDictionary* newDict;
@@ -550,7 +537,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 			[self addToMultiValue: multi fromDictionary: addDict];
 		}
 	}
-	return multi;
+	return multi; // caller is responsible for releasing
 }
 // used for ims and addresses to convert W3 dictionary of values to AB Dictionary
 -(NSMutableDictionary*) translateW3Dict: (NSDictionary*) dict forProperty: (ABPropertyID) prop
@@ -579,12 +566,30 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	}
 	return newDict;
 }
+/* set multivalue dictionary properties into an AddressBook Record
+ * NSArray* array - array of dictionaries containing the W3C properties to set into the record
+ * ABPropertyID prop - the property id for the multivalue dictionary (addresses and ims)
+ * ABRecordRef person - the record to set the values into
+ * BOOL bUpdate - YES if this is an update to an existing record
+ *	When updating:
+ *	  emtpy array indicates to remove entire property
+ *	  value/label == "" indicates to remove
+ *    value/label == [NSNull null] do not modify (keep existing record value) 
+ * RETURN
+ *   bool false indicates fatal error
+ *
+ *  iOS addresses and im are a MultiValue Properties with label, value=dictionary of  info, and id
+ *  set addresses:  streetAddress, locality, region, postalCode, country
+ *  set ims:  value = username, type = servicetype
+ *  there are some special cases in here for ims - needs cleanup / simplification
+ *  
+ */
 -(bool) setMultiValueDictionary: (NSArray*)array forProperty: (ABPropertyID) prop inRecord: (ABRecordRef)person asUpdate: (BOOL)bUpdate
 {
 	bool bSuccess = FALSE;
 	ABMutableMultiValueRef multi = nil;
 	if (!bUpdate){
-		multi = [self createDictMultiValueFromArray: array forProperty: prop];
+		multi = [self allocDictMultiValueFromArray: array forProperty: prop];
 		bSuccess = [self setValue: multi forProperty:prop inRecord: person];
 	}
 	else if (bUpdate && [array count] == 0){
@@ -624,9 +629,9 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 						} // else if value == "" it will not be added into updated dict and thus removed
 						if ([dict count] > 0){
 							// something was added into new dict,
-							bSuccess = ABMultiValueReplaceValueAtIndex(multi, dict, idx);
+							ABMultiValueReplaceValueAtIndex(multi, dict, idx);
 						} else { // nothing added into new dict so remove this property entry
-							bSuccess = ABMultiValueRemoveValueAndLabelAtIndex(multi, idx);
+							ABMultiValueRemoveValueAndLabelAtIndex(multi, idx);
 						}
 					}
 					CFRelease(existingDictionary);
@@ -652,6 +657,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	
 	return bSuccess;
 }
+	
 /* Determine which W3C labels need to be converted
  */
 +(BOOL) needsConversion: (NSString*)W3Label{
@@ -678,24 +684,26 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	if ([label isKindOfClass:[NSNull class]] || ![label isKindOfClass:[NSString class]]){
 		type = NULL; // no label
 	}
-	else if ([label isEqualToString: kW3ContactWorkLabel]){
+	else if ([label caseInsensitiveCompare: kW3ContactWorkLabel] == NSOrderedSame){
 		type = kABWorkLabel;
-	} else if ([label isEqualToString: kW3ContactHomeLabel]){
+	} else if ([label caseInsensitiveCompare: kW3ContactHomeLabel] == NSOrderedSame){
 		type = kABHomeLabel;
-	} else if ( [label isEqualToString: kW3ContactOtherLabel]){
+	} else if ( [label caseInsensitiveCompare: kW3ContactOtherLabel] == NSOrderedSame){
 		type = kABOtherLabel;
-	} else if ( [label isEqualToString:kW3ContactPhoneMobileLabel]){
+	} else if ( [label caseInsensitiveCompare:kW3ContactPhoneMobileLabel] == NSOrderedSame){
 		type = kABPersonPhoneMobileLabel;
-	} else if ( [label isEqualToString:kW3ContactPhonePagerLabel]){
+	} else if ( [label caseInsensitiveCompare:kW3ContactPhonePagerLabel] == NSOrderedSame){
 		type = kABPersonPhonePagerLabel;
-	} else if ( [label isEqualToString:kW3ContactImAIMLabel]){
+	} else if ( [label caseInsensitiveCompare:kW3ContactImAIMLabel] == NSOrderedSame){
 		type = kABPersonInstantMessageServiceAIM;
-	} else if ( [label isEqualToString:kW3ContactImICQLabel]){
+	} else if ( [label caseInsensitiveCompare:kW3ContactImICQLabel] == NSOrderedSame){
 		type = kABPersonInstantMessageServiceICQ;
-	} else if ( [label isEqualToString:kW3ContactImMSNLabel]){
+	} else if ( [label caseInsensitiveCompare:kW3ContactImMSNLabel] == NSOrderedSame){
 		type = kABPersonInstantMessageServiceMSN;
-	} else if ( [label isEqualToString:kW3ContactImYahooLabel]){
+	} else if ( [label caseInsensitiveCompare:kW3ContactImYahooLabel] == NSOrderedSame){
 		type = kABPersonInstantMessageServiceYahoo;
+	} else if ( [label caseInsensitiveCompare:kW3ContactUrlProfile] == NSOrderedSame){
+		type = kABPersonHomePageLabel;
 	} else {
 		type = kABOtherLabel;
 	}
@@ -730,6 +738,8 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 			type = kW3ContactImMSNLabel;
 		} else if ([label isEqualToString:(NSString*)kABPersonInstantMessageServiceYahoo]){
 			type = kW3ContactImYahooLabel;
+		} else if ([label isEqualToString:(NSString*)kABPersonHomePageLabel]){
+			type = kW3ContactUrlProfile;
 		} else {
 			type = kW3ContactOtherLabel;
 		}
@@ -737,6 +747,42 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	}
 	return type;
 }
+/* Check if the input label is a valid W3C ContactField.type. This is used when searching, 
+ * only search field types if the search string is a valid type.  If we converted any search
+ * string to a ABPropertyLabel it could convert to kABOtherLabel which is probably not want
+ * the user wanted to search for and could skew the results.
+ */
++(BOOL) isValidW3ContactType: (NSString*) label
+{
+	BOOL isValid = NO;
+	if ([label isKindOfClass:[NSNull class]] || ![label isKindOfClass:[NSString class]]){
+		isValid = NO; // no label
+	}
+	else if ([label caseInsensitiveCompare: kW3ContactWorkLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ([label caseInsensitiveCompare: kW3ContactHomeLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ( [label caseInsensitiveCompare: kW3ContactOtherLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ( [label caseInsensitiveCompare:kW3ContactPhoneMobileLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ( [label caseInsensitiveCompare:kW3ContactPhonePagerLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ( [label caseInsensitiveCompare:kW3ContactImAIMLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ( [label caseInsensitiveCompare:kW3ContactImICQLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ( [label caseInsensitiveCompare:kW3ContactImMSNLabel] == NSOrderedSame){
+		isValid = YES;
+	} else if ( [label caseInsensitiveCompare:kW3ContactImYahooLabel] == NSOrderedSame){
+		isValid = YES;
+	} else {
+		isValid = NO;
+	}
+	
+	return isValid;
+}
+	
 
 /* Create a new Contact Dictionary object from an ABRecordRef that contains information in a format such that 
  * it can be returned to JavaScript callback as JSON object string. 
@@ -766,11 +812,11 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
  * @param {ContactField[]} relationships
  * @param {ContactField[]} urls contact's web sites
  * @param {ContactAccounts[]} accounts contact's online accounts
- * @param {DOMString} utcOffset UTC time zone offset
+ * @param {DOMString} timezone UTC time zone offset
  * @param {DOMString} connected
  */
 
--(NSMutableDictionary*) toDictionary: (NSDictionary*) withFields
+-(NSDictionary*) toDictionary: (NSDictionary*) withFields
 {
 
 	
@@ -786,6 +832,10 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	NSMutableDictionary* nc = [NSMutableDictionary dictionaryWithCapacity:1];  // new contact dictionary to fill in from ABRecordRef
 	// id
 	[nc setObject: [NSNumber numberWithInt: ABRecordGetRecordID(self.record)] forKey:kW3ContactId];
+	if (self.returnFields == nil){
+		// if no returnFields specified, W3C says to return empty contact (but PhoneGap will at least return id)
+		return nc;
+	}
 	// nickname
 	if ([self.returnFields valueForKey:kW3ContactNickname]){
 		value = [(NSString*)ABRecordCopyValue(self.record, kABPersonNicknameProperty) autorelease];
@@ -825,6 +875,11 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	if (value != nil){
 		[nc setObject: value forKey: kW3ContactEmails];
 	}
+	// urls array
+	value = [self extractMultiValue:kW3ContactUrls];
+	if (value != nil){
+		[nc setObject: value forKey: kW3ContactUrls];
+	}
 	// addresses array
 	//NSLog(@"getting addresses");
 	value = [self extractAddresses];
@@ -850,17 +905,16 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	// add dates
 	//NSLog(@"getting dates");
 	NSNumber* ms;
-	if ([self.returnFields valueForKey:kW3ContactPublished]){
-		ms = [self getDateAsNumber: kABPersonCreationDateProperty];
-		if (ms){
-			[nc setObject: ms forKey:kW3ContactPublished];
-		}
-	}
 	if ([self.returnFields valueForKey:kW3ContactUpdated]){
 		ms = [self getDateAsNumber: kABPersonModificationDateProperty];
+		if (!ms){
+			// try and get published date
+			ms = [self getDateAsNumber: kABPersonCreationDateProperty];
+		}
 		if (ms){
 			[nc setObject:  ms forKey:kW3ContactUpdated];
 		}
+
 	}
 	if ([self.returnFields valueForKey:kW3ContactBirthday]){
 		ms = [self getDateAsNumber: kABPersonBirthdayProperty];
@@ -902,18 +956,18 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 		value = [self extractPhotos];
 		[nc setObject:  (value != nil) ? value : [NSNull null] forKey:kW3ContactPhotos];
 	}
-	// TODO tags
-	//[nc setObject:[NSNull null] forKey:kW3ContactTags];
-	// TODO relationships
-	//[nc setObject:[NSNull null] forKey:kW3ContactRelationships];
-	// TODO WebURLs
+	
+	if ([self.returnFields valueForKey:kW3ContactTimezone]){
+		[NSTimeZone resetSystemTimeZone];
+		NSTimeZone* currentTZ = [NSTimeZone localTimeZone];
+		NSInteger seconds = [currentTZ secondsFromGMT];
+		NSString* tz = [NSString stringWithFormat:@"%2d:%02u",  seconds/3600, seconds % 3600 ];
+		[nc setObject:tz forKey:kW3ContactTimezone];
+	}
+		// TODO WebURLs
 	//[nc setObject:[NSNull null] forKey:kW3ContactUrls];
 	// online accounts - not available on iOS
-	//[nc setObject:[NSNull null] forKey:kW3ContactAccounts];
-	// TODO UTCOffset
-	//[nc setObject:[NSNull null] forKey:kW3ContactUtcOffset];
-	// TODO connected
-	//[nc setObject:[NSNull null] forKey:kW3ContactConnected];
+	
 	
 	return nc;
 	
@@ -980,11 +1034,13 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	if (fields == nil){
 		return nil;
 	}
-	ABMultiValueRef multi;
+	ABMultiValueRef multi = nil;
 	NSObject* valuesArray = nil;
-	
-	multi = ABRecordCopyValue(self.record, (ABPropertyID)[[[Contact defaultW3CtoAB] valueForKey:propertyId] intValue]);
-	CFIndex count =  multi  ? ABMultiValueGetCount(multi) : 0;
+	NSNumber* propNumber = [[Contact defaultW3CtoAB] valueForKey:propertyId];
+	ABPropertyID propId = [propNumber intValue];
+	multi = ABRecordCopyValue(self.record, propId);
+	//multi = ABRecordCopyValue(self.record, (ABPropertyID)[[[Contact defaultW3CtoAB] valueForKey:propertyId] intValue]);
+	CFIndex count =  multi != nil ? ABMultiValueGetCount(multi) : 0;
 	id value;
 	if (count){
 		valuesArray = [NSMutableArray arrayWithCapacity:count];
@@ -1072,8 +1128,8 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	} else {
 		addresses = [NSNull null];
 	}
-
-	CFRelease(multi);
+	if (multi)
+		CFRelease(multi);
 	
 	
 	return addresses;
@@ -1125,7 +1181,8 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 		imArray = [NSNull null];
 	}
 
-	CFRelease(multi);
+	if (multi)
+		CFRelease(multi);
 	return imArray;
 }
 /* Create array of Dictionaris to match JavaScript ContactOrganization object
@@ -1192,6 +1249,7 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 			photos = [NSMutableArray arrayWithCapacity:1];
 			NSMutableDictionary* newDict = [NSMutableDictionary dictionaryWithCapacity:2];
 			[newDict setObject:filePath forKey:kW3ContactFieldValue];
+			[newDict setObject:@"url" forKey:kW3ContactFieldType];
 			[newDict setObject:@"false" forKey:kW3ContactFieldPrimary];
 			[photos addObject:newDict];
 		}
@@ -1219,9 +1277,15 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	if (fieldsArray != nil && [fieldsArray isKindOfClass:[NSArray class]]){
 		for (id i in fieldsArray){
 			NSMutableArray* keys = nil;
-			
+			NSString* fieldStr = nil;
+			if ([i isKindOfClass: [NSNumber class]]) {
+				fieldStr = [i stringValue];
+			} else {
+				fieldStr = i;
+			}
+
 			// see if this is specific property request in object - object.property
-			NSArray* parts = [(NSString*)i componentsSeparatedByString:@"."]; // returns original string if no separator found
+			NSArray* parts = [fieldStr componentsSeparatedByString:@"."]; // returns original string if no separator found
 			NSString* name = [parts objectAtIndex:0];
 			NSString* property = nil;
 			if ([parts count] > 1){
@@ -1261,11 +1325,311 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 		}
 	}
 	if ([d count] == 0){
-		// no array or nothing in the array so return all fields
-		return [Contact defaultFields];
+		// no array or nothing in the array. W3C spec says to return nothing
+		return nil;   //[Contact defaultFields];
 	}
 	return d;
 	
+}
+/*
+ * Search for the specified value in each of the fields specified in the searchFields dictionary.
+ * NSString* value - the string value to search for (need clarification from W3C on how to search for dates)
+ * NSDictionary* searchFields - a dictionary created via calcReturnFields where the key is the top level W3C
+ *	object and the object is the array of specific fields within that object or null if it is a single property
+ * RETURNS
+ *	YES as soon as a match is found in any of the fields
+ *	NO - the specified value does not exist in any of the fields in this contact
+ *
+ *  Note: I'm not a fan of returning in the middle of methods but have done it some in this method in order to 
+ *    keep the code simpler. bgibson
+ */
+-(BOOL) foundValue: (NSString*)testValue inFields: (NSDictionary*) searchFields
+{
+	BOOL bFound = NO;
+	
+	if (testValue == nil || ![testValue isKindOfClass: [NSString class]] || [testValue length] == 0){
+		// nothing to find so return NO
+		return NO;
+	}
+	NSInteger valueAsInt = [testValue integerValue];
+	
+	// per W3C spec, always include id in search
+	int recordId = ABRecordGetRecordID(self.record);
+	if (valueAsInt && recordId == valueAsInt){
+		return YES;
+	}
+	
+	if (searchFields == nil) {
+		// no fields to search
+		return NO;
+	}
+	
+	
+	if ([searchFields valueForKey:kW3ContactNickname]){
+		bFound = [self testStringValue:testValue forW3CProperty:kW3ContactNickname];
+		if (bFound == YES){
+			return bFound;
+		}
+	}
+	
+	if ([searchFields valueForKeyIsArray:kW3ContactName]){
+		// test name fields.  All are string properties obtained via ABRecordCopyValue except kW3ContactFormattedName
+		NSArray* fields = [searchFields valueForKey:kW3ContactName];
+		for (NSString* testItem in fields){
+			if ([testItem isEqualToString:kW3ContactFormattedName]){
+				NSString* propValue = [(NSString*)ABRecordCopyCompositeName(self.record) autorelease];
+				if (propValue != nil && [propValue length] > 0) {
+					NSRange range = [propValue rangeOfString:testValue options: NSCaseInsensitiveSearch];
+					bFound = (range.location != NSNotFound);
+					propValue = nil;
+				}
+			} else {
+				bFound = [self testStringValue:testValue forW3CProperty:testItem];
+			}
+			
+			if (bFound) {
+				break;
+			}
+		}
+	}
+	if (!bFound && [searchFields valueForKeyIsArray:kW3ContactPhoneNumbers]){
+		bFound = [self searchContactFields: (NSArray*) [searchFields valueForKey: kW3ContactPhoneNumbers] 
+							 forMVStringProperty: kABPersonPhoneProperty withValue: testValue];
+	}
+	if (!bFound && [searchFields valueForKeyIsArray: kW3ContactEmails]){
+		bFound = [self searchContactFields: (NSArray*) [searchFields valueForKey: kW3ContactEmails] 
+							forMVStringProperty: kABPersonEmailProperty withValue: testValue];
+	}
+		
+	if (!bFound && [searchFields valueForKeyIsArray: kW3ContactAddresses]){
+		bFound = [self searchContactFields: [searchFields valueForKey:kW3ContactAddresses]
+				   forMVDictionaryProperty: kABPersonAddressProperty withValue: testValue];
+	}
+					
+	if (!bFound && [searchFields valueForKeyIsArray: kW3ContactIms]){
+		bFound = [self searchContactFields: [searchFields valueForKey:kW3ContactIms] 
+			forMVDictionaryProperty: kABPersonInstantMessageProperty withValue: testValue]; 
+	}
+	
+	if (!bFound && [searchFields valueForKeyIsArray: kW3ContactOrganizations]){
+		NSArray* fields = [searchFields valueForKey: kW3ContactOrganizations];
+		for (NSString* testItem in fields){
+			bFound = [self testStringValue:testValue forW3CProperty:testItem];
+			if (bFound == YES){
+				break;
+			}
+		}
+	}
+	if (!bFound && [searchFields valueForKey:kW3ContactNote]){
+		bFound = [self testStringValue:testValue forW3CProperty:kW3ContactNote];
+	}
+
+	// if searching for a date field is requested, get the date field as a localized string then look for match against testValue in date string
+	// searching for photos is not supported
+	if (!bFound && [searchFields valueForKey:kW3ContactBirthday]){
+		bFound = [self testDateValue: testValue forW3CProperty: kW3ContactBirthday];
+	}
+	if (!bFound && [searchFields valueForKeyIsArray: kW3ContactUrls]){
+		bFound = [self searchContactFields: (NSArray*) [searchFields valueForKey: kW3ContactUrls] 
+					   forMVStringProperty: kABPersonURLProperty withValue: testValue];
+	}
+	
+	return bFound;
+	
+	
+}
+
+/*
+ * Test for the existence of a given string within the value of a ABPersonRecord string property based on the W3c property name.
+ *
+ * IN:
+ *	NSString* testValue - the value to find - search is case insensitive
+ *  NSString* property - the W3c property string
+ * OUT:
+ * BOOL YES if the given string was found within the property value
+ *		NO if the testValue was not found, W3C property string was invalid or the AddressBook property was not a string
+ */
+-(BOOL) testStringValue: (NSString*)testValue forW3CProperty: (NSString*) property {
+	BOOL bFound = NO;
+	
+	if ([[Contact defaultW3CtoAB] valueForKeyIsNumber: property ]) {
+		ABPropertyID propId = [[[Contact defaultW3CtoAB] objectForKey: property] intValue];
+		if(ABPersonGetTypeOfProperty(propId) == kABStringPropertyType){
+			NSString* propValue = [(NSString*)ABRecordCopyValue(self.record, propId) autorelease];
+			if (propValue != nil && [propValue length] > 0) {
+				NSPredicate *containPred = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", testValue];  
+				bFound = [containPred evaluateWithObject:propValue]; 
+				//NSRange range = [propValue rangeOfString:testValue options: NSCaseInsensitiveSearch];
+				//bFound = (range.location != NSNotFound);
+			}
+		}
+	}
+	return bFound;
+}
+/*
+ * Test for the existence of a given Date string within the value of a ABPersonRecord datetime property based on the W3c property name.
+ *
+ * IN:
+ *	NSString* testValue - the value to find - search is case insensitive
+ *  NSString* property - the W3c property string
+ * OUT:
+ * BOOL YES if the given string was found within the localized date string value
+ *		NO if the testValue was not found, W3C property string was invalid or the AddressBook property was not a DateTime
+ */
+-(BOOL) testDateValue: (NSString*)testValue forW3CProperty: (NSString*) property {
+	BOOL bFound = NO;
+	
+	if ([[Contact defaultW3CtoAB] valueForKeyIsNumber: property ]) {
+		ABPropertyID propId = [[[Contact defaultW3CtoAB] objectForKey: property] intValue];
+		if(ABPersonGetTypeOfProperty(propId) == kABDateTimePropertyType){
+			NSDate* date = [(NSString*)ABRecordCopyValue(self.record, propId) autorelease];
+			if (date != nil) {
+				NSString* dateString = [date descriptionWithLocale:[NSLocale currentLocale]];
+				NSPredicate *containPred = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", testValue];  
+				bFound = [containPred evaluateWithObject:dateString]; 
+			}
+		}
+	}
+	return bFound;
+}
+/* 
+ * Search the specified fields within an AddressBook multivalue string property for the specified test value.
+ * Used for phoneNumbers, emails and urls.
+ * IN:
+ *	NSArray* fields - the fields to search for within the multistring property (value and/or type)
+ *	ABPropertyID - the property to search
+ *	NSString* testValue - the value to search for. Will convert between W3C types and AB types.  Will only 
+ *		search for types if the testValue is a valid ContactField type.
+ * OUT:
+ *	YES if the test value was found in one of the specified fields
+ *	NO if the test value was not found
+ */
+-(BOOL) searchContactFields: (NSArray*) fields forMVStringProperty: (ABPropertyID) propId withValue: testValue {
+				
+	BOOL bFound = NO;
+	for (NSString* type in fields){
+		NSString* testString = nil;
+		if ([type isEqualToString: kW3ContactFieldType]){
+			if ([Contact isValidW3ContactType: testValue]){
+				// only search types if the filter string is a valid ContactField.type
+				testString = (NSString*)[Contact convertContactTypeToPropertyLabel:testValue];
+			}
+		} else {
+			testString = testValue;
+		}
+
+		if (testString != nil){
+			bFound = [self testMultiValueStrings:testString forProperty: propId ofType: type];
+		}
+		if (bFound == YES) {
+			break;
+		}
+	}
+	return bFound;
+}
+/*
+ * Searches a multiString value of the specified type for the specified test value.
+ *
+ * IN:
+ *	NSString* testValue - the value to test for
+ *	ABPropertyID propId - the property id of the multivalue property to search
+ *	NSString* type - the W3C contact type to search for (value or type)
+ * OUT:
+ * YES is the test value was found
+ * NO if the test value was not found
+ */
+- (BOOL) testMultiValueStrings: (NSString*) testValue forProperty: (ABPropertyID) propId ofType: (NSString*) type {
+	BOOL bFound = NO;
+	
+	if(ABPersonGetTypeOfProperty(propId) == kABMultiStringPropertyType){
+		NSArray* valueArray = nil;
+		if ([type isEqualToString:kW3ContactFieldType]){
+			valueArray = [self labelsForProperty: propId inRecord: self.record];
+		} else if ([type isEqualToString:kW3ContactFieldValue]) {
+			valueArray = [self valuesForProperty: propId inRecord: self.record];
+		}
+		if (valueArray) {
+			NSString* valuesAsString = [valueArray componentsJoinedByString:@" "];
+			NSPredicate *containPred = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", testValue];  
+			bFound = [containPred evaluateWithObject:valuesAsString];  
+		}
+	}
+	return bFound;			
+	
+}
+/* 
+ * Returns the array of values for a multivalue string property of the specified property id
+ */
+- (NSArray *) valuesForProperty: (ABPropertyID) propId inRecord: (ABRecordRef) aRecord
+{
+	ABMultiValueRef multi = ABRecordCopyValue(aRecord, propId);
+	NSArray *values = (NSArray *)ABMultiValueCopyArrayOfAllValues(multi);
+	CFRelease(multi);
+	return [values autorelease];
+}
+/* 
+ * Returns the array of labels for a multivalue string property of the specified property id
+ */
+- (NSArray *) labelsForProperty: (ABPropertyID) propId inRecord: (ABRecordRef)aRecord 
+{
+	ABMultiValueRef multi = ABRecordCopyValue(aRecord, propId);
+	CFIndex count = ABMultiValueGetCount(multi);
+	NSMutableArray *labels = [NSMutableArray arrayWithCapacity:count];
+	for (int i = 0; i < count; i++) {
+		NSString *label = (NSString *)ABMultiValueCopyLabelAtIndex(multi, i);
+		if (label){
+			[labels addObject:label];
+			[label release];
+		}
+	}
+	CFRelease(multi);
+	return labels;
+}
+/* search for values within MultiValue Dictionary properties Address or IM property
+ * IN:
+ * (NSArray*) fields - the array of W3C field names to search within
+ * (ABPropertyID) propId - the AddressBook property that returns a multivalue dictionaty 
+ * (NSString*) testValue - the string to search for within the specified fields
+ *
+ */
+-(BOOL) searchContactFields: (NSArray*) fields forMVDictionaryProperty: (ABPropertyID) propId withValue: (NSString*)testValue
+{
+	BOOL bFound = NO;
+	
+	NSArray* values = [self valuesForProperty:propId inRecord:self.record];  // array of dictionaries (as CFDictionaryRef) 
+	// for ims dictionary contains with service (w3C type) and username (W3c value)
+	// for addresses dictionary contains street, city, state, zip, country 
+	for(id dict in values){
+		for(NSString* member in fields){
+			NSString* abKey = [[Contact defaultW3CtoAB] valueForKey:member]; // im and address fields are all strings
+			NSString* abValue = nil;
+			if (abKey){
+				NSString* testString = nil;
+				if ([member isEqualToString:kW3ContactImType]){
+					if ([Contact isValidW3ContactType: testValue]){
+						// only search service/types if the filter string is a valid ContactField.type
+						testString = (NSString*)[Contact convertContactTypeToPropertyLabel:testValue];
+					}
+				} else {
+					testString = testValue;
+				}
+				if(testString != nil){
+					BOOL bExists = CFDictionaryGetValueIfPresent((CFDictionaryRef)dict, abKey, (void *)&abValue);
+					if(bExists) {
+						NSPredicate *containPred = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", testString];  
+						bFound = [containPred evaluateWithObject:abValue];
+					}
+				}
+			}	
+			if (bFound == YES) {
+				break;
+			}
+		} // end of for each member in fields
+		if (bFound == YES) {
+			break;
+		}
+	} // end of for each dictionary
+	return bFound;
 }
 
 
@@ -1274,7 +1638,8 @@ static NSDictionary*	com_phonegap_contacts_defaultFields = nil;
 	if (self.record){
 		CFRelease(self.record);
 	}
-	//[Contact releaseDefaults];
+
+
 	[super dealloc];
 }	
 @end

@@ -17,24 +17,16 @@
 * @param {ContactAddress[]} addresses array of addresses
 * @param {ContactField[]} ims instant messaging user ids
 * @param {ContactOrganization[]} organizations
-* @param {DOMString} published date contact was first created
-* @param {DOMString} updated date contact was last updated
+* @param {DOMString} revision date contact was last updated
 * @param {DOMString} birthday contact's birthday
-* @param (DOMString} anniversary contact's anniversary
 * @param {DOMString} gender contact's gender
 * @param {DOMString} note user notes about contact
-* @param {DOMString} preferredUsername
 * @param {ContactField[]} photos
-* @param {ContactField[]} tags
-* @param {ContactField[]} relationships
 * @param {ContactField[]} urls contact's web sites
-* @param {ContactAccounts[]} accounts contact's online accounts
-* @param {DOMString} utcOffset UTC time zone offset
-* @param {DOMString} connected
+* @param {DOMString} timezone UTC time zone offset
 */
 var Contact = function(id, displayName, name, nickname, phoneNumbers, emails, addresses,
-    ims, organizations, published, updated, birthday, anniversary, gender, note,
-    preferredUsername, photos, tags, relationships, urls, accounts, utcOffset, connected) {
+    ims, organizations, revision, birthday, gender, note, photos, categories, urls, timezone) {
     this.id = id || null;
     this.displayName = displayName || null;
     this.name = name || null; // ContactName
@@ -44,20 +36,14 @@ var Contact = function(id, displayName, name, nickname, phoneNumbers, emails, ad
     this.addresses = addresses || null; // ContactAddress[]
     this.ims = ims || null; // ContactField[]
     this.organizations = organizations || null; // ContactOrganization[]
-    this.published = published || null;
-    this.updated = updated || null;
-    this.birthday = birthday || null;
-    this.anniversary = anniversary || null;
+    this.revision = revision || null; // JS Date
+    this.birthday = birthday || null; // JS Date
     this.gender = gender || null;
     this.note = note || null;
-    this.preferredUsername = preferredUsername || null;
     this.photos = photos || null; // ContactField[]
-    this.tags = tags || null; // ContactField[]
-    this.relationships = relationships || null; // ContactField[]
+    this.categories = categories || null; 
     this.urls = urls || null; // ContactField[]
-    this.accounts = accounts || null; // ContactAccount[]
-    this.utcOffset = utcOffset || null;
-    this.connected = connected || null;
+    this.timezone = timezone || null;
 };
 
 /**
@@ -65,7 +51,7 @@ var Contact = function(id, displayName, name, nickname, phoneNumbers, emails, ad
 */
 Contact.prototype.convertDatesOut = function()
 {
-	var dates = new Array("published", "updated", "birthday", "anniversary");
+	var dates = new Array("revision", "birthday");
 	for (var i=0; i<dates.length; i++){
 		var value = this[dates[i]];
 		if (value){
@@ -89,7 +75,7 @@ Contact.prototype.convertDatesOut = function()
 */
 Contact.prototype.convertDatesIn = function()
 {
-	var dates = new Array("published", "updated", "birthday");
+	var dates = new Array("revision", "birthday");
 	for (var i=0; i<dates.length; i++){
 		var value = this[dates[i]];
 		if (value){
@@ -107,14 +93,14 @@ Contact.prototype.convertDatesIn = function()
 * @param errorCB error callback (optional)
 */
 Contact.prototype.remove = function(successCB, errorCB) {
-    if (this.id == null) {
+	if (this.id == null) {
         var errorObj = new ContactError();
         errorObj.code = ContactError.NOT_FOUND_ERROR;
         errorCB(errorObj);
     }
-	navigator.service.contacts.resultsCallback = successCB;
-	var errCallback = (errorCB == undefined || errorCB == null) ? null : GetFunctionName(errorCB);
-    PhoneGap.exec("Contacts.remove", GetFunctionName(successCB), errCallback, { "contact": this});
+    else {
+        PhoneGap.exec(successCB, errorCB, "Contacts", "remove", [{ "contact": this}]);
+    }
 };
 /**
 * iOS ONLY
@@ -123,12 +109,14 @@ Contact.prototype.remove = function(successCB, errorCB) {
 * @param errorCB error callback
 */
 Contact.prototype.display = function(successCB, errorCB, options) { 
-    if (this.id == null) {
+	if (this.id == null) {
         var errorObj = new ContactError();
         errorObj.code = ContactError.NOT_FOUND_ERROR;
         errorCB(errorObj);
     }
-    PhoneGap.exec("Contacts.displayContact", this.id, GetFunctionName(successCB), GetFunctionName(errorCB), options);
+    else {
+        PhoneGap.exec(successCB, errorCB, "Contacts","displayContact", [this.id, options]);
+    }
 };
 
 /**
@@ -165,14 +153,9 @@ Contact.prototype.clone = function() {
     		clonedContact.organizations[i].id = null;
     	}
     }
-    if (clonedContact.tags) {
-    	for (i=0; i<clonedContact.tags.length; i++) {
-    		clonedContact.tags[i].id = null;
-    	}
-    }
-    if (clonedContact.relationships) {
-    	for (i=0; i<clonedContact.relationships.length; i++) {
-    		clonedContact.relationships[i].id = null;
+    if (clonedContact.photos) {
+    	for (i=0; i<clonedContact.photos.length; i++) {
+    		clonedContact.photos[i].id = null;
     	}
     }
     if (clonedContact.urls) {
@@ -186,16 +169,13 @@ Contact.prototype.clone = function() {
 /**
 * Persists contact to device storage.
 * @param successCB success callback
-* @param errorCB error callback
+* @param errorCB error callback - optional
 */
 Contact.prototype.save = function(successCB, errorCB) {
-	navigator.service.contacts.resultsCallback = successCB;
 	// don't modify the original contact
-
 	var cloned = PhoneGap.clone(this);
-
 	cloned.convertDatesOut(); 
-	PhoneGap.exec("Contacts.save", GetFunctionName(successCB), GetFunctionName(errorCB), {"contact": cloned});
+	PhoneGap.exec(successCB, errorCB, "Contacts","save", [{"contact": cloned}]);
 };
 
 /**
@@ -223,10 +203,10 @@ var ContactName = function(formatted, familyName, givenName, middle, prefix, suf
 * @param primary
 * @param id
 */
-var ContactField = function(type, value, primary, id) {
+var ContactField = function(type, value, pref, id) {
     this.type = type != "undefined" ? type : null;
     this.value = value != "undefined" ? value : null;
-    this.primary = primary != "undefined" ? primary : null;
+    this.pref = pref != "undefined" ? pref : null;
     this.id = id != "undefined" ? id : null;
 };
 
@@ -288,6 +268,7 @@ var Contacts = function() {
     this.inProgress = false;
     this.records = new Array();
     this.resultsCallback = null;
+    this.errorCallback = null;
 };
 /**
 * Returns an array of Contacts matching the search criteria.
@@ -298,7 +279,6 @@ var Contacts = function() {
 * @return array of Contacts matching search criteria
 */
 Contacts.prototype.find = function(fields, successCB, errorCB, options) {
-	this.resultsCallback = successCB;
 	var theOptions = options || null;
 	if (theOptions != null){
 		// convert updatedSince to ms
@@ -316,9 +296,8 @@ Contacts.prototype.find = function(fields, successCB, errorCB, options) {
 			}
 		}
 	}
-	var errCallback = (errorCB == undefined || errorCB == null) ? null : GetFunctionName(errorCB);
-	
-	PhoneGap.exec("Contacts.search", GetFunctionName(successCB), errCallback, {"fields":fields, "findOptions":theOptions});
+
+	PhoneGap.exec(successCB, errorCB, "Contacts","search", [{"fields":fields, "findOptions":theOptions}]);
 	
 };
 /**
@@ -327,63 +306,62 @@ Contacts.prototype.find = function(fields, successCB, errorCB, options) {
 * @return call results callback with array of Contact objects
 *  This function is called from objective C Contacts.search() method.
 */
-
-Contacts.prototype._findCallback = function(contactStrArray)
-{
-	var c = null;
-	if (contactStrArray){
-		c = new Array();
-		try {
-			for (var i=0; i<contactStrArray.length; i++)
-			{
-				var contactStr = contactStrArray[i]; 
-				var newContact = navigator.service.contacts.create(contactStr); 
-				newContact.convertDatesIn();
-				c.push(newContact);
-				
-			}
-		} catch(e){
-			console.log("Error parsing contacts");
+Contacts.prototype._findCallback = function(pluginResult) {
+	var contacts = new Array();
+	try {
+		for (var i=0; i<pluginResult.message.length; i++) {
+			var newContact = navigator.service.contacts.create(pluginResult.message[i]); 
+			newContact.convertDatesIn();
+			contacts.push(newContact);
 		}
+		pluginResult.message = contacts;
+	} catch(e){
+			console.log("Error parsing contacts: " +e);
 	}
-	try { 
-        this.resultsCallback(c);
-    }
-    catch (e) {
-        console.log("Error in user's result callback: " + e);
-    }
-};
+	return pluginResult;
+}
+
 /**
 * need to turn the JSON string representing contact object into actual object
 * @param JSON string with contact data
 * Call stored results function with  Contact object
 *  This function is called from objective C Contacts remove and save methods
 */
-Contacts.prototype._contactCallback = function(contactStr)
+Contacts.prototype._contactCallback = function(pluginResult)
 {
 	var newContact = null;
-	if (contactStr){
+	if (pluginResult.message){
 		try {
-			newContact = navigator.service.contacts.create(contactStr);
+			newContact = navigator.service.contacts.create(pluginResult.message);
 			newContact.convertDatesIn();
 		} catch(e){
 			console.log("Error parsing contact");
 		}
 	}
-	try { 
-        this.resultsCallback(newContact);
-    }
-    catch (e) {
-        console.log("Error in user's result callback: " + e);
-    }
+	pluginResult.message = newContact;
+	return pluginResult;
+	
+};
+/** 
+* Need to return an error object rather than just a single error code
+* @param error code
+* Call optional error callback if found.
+* Called from objective c find, remove, and save methods on error.
+*/
+Contacts.prototype._errCallback = function(pluginResult)
+{
+	var errorObj = new ContactError();
+   	errorObj.code = pluginResult.message;
+	pluginResult.message = errorObj;
+	return pluginResult;
 };
 // iPhone only api to create a new contact via the GUI
 Contacts.prototype.newContactUI = function(successCallback) { 
-    PhoneGap.exec("Contacts.newContact", GetFunctionName(successCallback));
+    PhoneGap.exec(successCallback, null, "Contacts","newContact", []);
 };
 // iPhone only api to select a contact via the GUI
 Contacts.prototype.chooseContact = function(successCallback, options) {
-    PhoneGap.exec("Contacts.chooseContact", GetFunctionName(successCallback), options);
+    PhoneGap.exec(successCallback, null, "Contacts","chooseContact", options);
 };
 
 
@@ -408,13 +386,11 @@ Contacts.prototype.create = function(properties) {
  * ContactFindOptions.
  * @param filter used to match contacts against
  * @param multiple boolean used to determine if more than one contact should be returned
- * @param limit maximum number of results to return from the contacts search
  * @param updatedSince return only contact records that have been updated on or after the given time
  */
-var ContactFindOptions = function(filter, multiple, limit, updatedSince) {
+var ContactFindOptions = function(filter, multiple, updatedSince) {
     this.filter = filter || '';
     this.multiple = multiple || true;
-    this.limit = limit || null;
     this.updatedSince = updatedSince || '';
 };
 
