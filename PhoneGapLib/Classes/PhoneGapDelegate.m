@@ -263,7 +263,11 @@ static NSString *gapVersion;
 	imageView = [[UIImageView alloc] initWithImage:image];
 	[image release];
 	
-    imageView.tag = 1;
+	// make background of imageview black
+	[imageView setBackgroundColor:[UIColor blackColor]];
+	[imageView setFrame:window.bounds];
+	
+	imageView.tag = 1;
 	[window addSubview:imageView];
 	[imageView release];
 
