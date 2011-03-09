@@ -90,6 +90,14 @@
 	if (audioFile == nil) 
 		return; 
 	
+	NSNumber* loopOption = [options objectForKey:@"numberOfLoops"];
+	NSInteger numberOfLoops = 0;
+	if (loopOption != nil) {
+		numberOfLoops = [loopOption intValue] - 1;
+	}
+	
+	audioFile.player.numberOfLoops = numberOfLoops;
+	
 	[audioFile fadeOutAndStopAfter:duration]; 
 }
 
