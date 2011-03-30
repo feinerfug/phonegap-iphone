@@ -94,8 +94,6 @@
 {
 	NSLog(@"Finished playing audio sample '%@'", resourcePath);
 	
-	[sound removeFromSoundCache:self];
-	
 	if (flag){
 		if (self.successCallback) {
 			NSString* jsString = [NSString stringWithFormat:@"(%@)(\"%@\");", self.successCallback, resourcePath];
@@ -107,6 +105,8 @@
 			[sound writeJavascript:jsString];
 		}		
 	}
+	
+	[sound removeFromSoundCache:self];
 }
 
 - (void) dealloc
