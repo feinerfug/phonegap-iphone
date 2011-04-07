@@ -159,10 +159,14 @@ static NSString *gapVersion;
 #endif
     NSNumber *useLocation          = [settings objectForKey:@"UseLocation"];
     NSString *topActivityIndicator = [settings objectForKey:@"TopActivityIndicator"];
+	NSString *showStatusBar = [settings objectForKey:@"ShowStatusBar"];
 	
-	
-	// The first item in the supportedOrientations array is the start orientation (guaranteed to be at least Portrait)
-	[[UIApplication sharedApplication] setStatusBarOrientation:[[supportedOrientations objectAtIndex:0] intValue]];
+	if(showStatusBar && ![showStatusBar boolValue]) {
+		[[UIApplication sharedApplication] setStatusBarHidden:YES animated:NO];
+	} else {
+		// The first item in the supportedOrientations array is the start orientation (guaranteed to be at least Portrait)
+		[[UIApplication sharedApplication] setStatusBarOrientation:[[supportedOrientations objectAtIndex:0] intValue]];
+	}
 	
 	// Set the supported orientations for rotation. If number of items in the array is > 1, autorotate is supported
     viewController.supportedOrientations = supportedOrientations;
