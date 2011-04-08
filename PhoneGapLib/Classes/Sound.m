@@ -24,10 +24,7 @@
   [self addToSoundCache: audioFile];
   
   NSLog(@"Prepared audio sample '%@' for playback.", audioFile.resourcePath);
-  if (audioFile.downloadCompleteCallback) {
-    NSString* jsString = [NSString stringWithFormat:@"(%@)();", audioFile.downloadCompleteCallback];
-    [super writeJavascript:jsString];
-  }
+  [super writeJavascript:[NSString stringWithFormat:@"Media.downloadCompleteCallbacks['%@']();", audioFile.resourcePath]];
   
   audioFile.player.delegate = audioFile;
   [audioFile.player prepareToPlay];
@@ -108,18 +105,16 @@
 		return;
 	}
 	
+	if([audioFile.player isPlaying])
+		[audioFile.player stop];	
+	
 	[self removeFromSoundCache:audioFile];
 	[audioFile dealloc];
 }
 
 - (AudioFile*) audioFileFor:(NSMutableArray*)arguments {
   AudioFile* audioFile = [self audioFileForResource:[arguments objectAtIndex:0]];
-  
-  if (audioFile == nil) {
-    return nil;
-  }
-
-	return [self setCallbacksFor: audioFile from:arguments];
+	return audioFile;
 }
 
 // Creates audio file resource object
@@ -177,23 +172,6 @@
 
 	return retVal;
 }
-
-// Maps a url for a resource path
-// "Naked" resource paths are assumed to be from the www folder as its base
-- (AudioFile*) setCallbacksFor:(AudioFile*)audioFile from:(NSMutableArray*)arguments { 
-  NSUInteger argc = [arguments count];
-  if (argc > 1) {
-    audioFile.successCallback = [arguments objectAtIndex:1];
-  }
-  if (argc > 2) {
-    audioFile.errorCallback = [arguments objectAtIndex:2];
-  }
-  if (argc > 3) {
-    audioFile.downloadCompleteCallback = [arguments objectAtIndex:3];
-  }
-	return audioFile;
-}
-
 
 // Maps a url for a resource path
 // "Naked" resource paths are assumed to be from the www folder as its base

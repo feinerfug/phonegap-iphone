@@ -14,26 +14,25 @@ MediaError.MEDIA_ERR_NETWORK = 2;
 MediaError.MEDIA_ERR_DECODE = 3;
 MediaError.MEDIA_ERR_NONE_SUPPORTED = 4;
 
-/**
- * Media/Audio override.
- *
- */
+Media.successCallbacks = {};
+Media.errorCallbacks = {};
+Media.downloadCompleteCallbacks = {};
+Media.fadeInCallbacks = {};
+Media.fadeOutCallbacks = {};
 
 function Media(src, successCallback, errorCallback, downloadCompleteCallback) {
     this.src = src;
-    this.successCallback = successCallback;
-    this.errorCallback = errorCallback;
-    this.downloadCompleteCallback = downloadCompleteCallback;
+
+    Media.successCallbacks[src] = successCallback || function() {};
+    Media.errorCallbacks[src] = errorCallback || function() {};
+    Media.downloadCompleteCallbacks[src] = downloadCompleteCallback || function() {};
     
     if (this.src != null) {
-	PhoneGap.exec("Sound.prepare", this.src, this.successCallback, this.errorCallback, this.downloadCompleteCallback);
+	PhoneGap.exec("Sound.prepare", this.src);
     } else { 
 	throw "Invalid state of media object";
     }
 }
-
-Media.fadeInCallbacks = {};
-Media.fadeOutCallbacks = {};
 
 Media.prototype.play = function(options) {
     if (this.src != null) {
@@ -81,6 +80,9 @@ Media.prototype.fadeOutAndStop = function(duration, callback) {
 Media.prototype.discard = function() {
     if(this.src !== null) {
 	this.src = null;
+
+	Media.successCallbacks[this.src] = Media.errorCallbacks[this.src] = Media.downloadCompleteCallbacks[this.src] = Media.fadeInCallbacks[this.src] = Media.fadeOutCallbacks[this.src] = undefined;
+
 	PhoneGap.exec("Sound.discard", this.src); 
     } else { 
 	throw "Invalid state of media object";

@@ -12,9 +12,6 @@
 
 @synthesize resourcePath;
 @synthesize resourceURL;
-@synthesize successCallback;
-@synthesize errorCallback;
-@synthesize downloadCompleteCallback;
 @synthesize player;
 @synthesize sound;
 
@@ -95,24 +92,15 @@
 	NSLog(@"Finished playing audio sample '%@'", resourcePath);
 	
 	if (flag){
-		if (self.successCallback) {
-			NSString* jsString = [NSString stringWithFormat:@"(%@)(\"%@\");", self.successCallback, resourcePath];
-			[sound writeJavascript:jsString];
-		}
+		[sound writeJavascript:[NSString stringWithFormat:@"Media.successCallbacks['%@']();", self.resourcePath]];
 	} else {
-		if (self.errorCallback) {
-			NSString* jsString = [NSString stringWithFormat:@"(%@)(\"%@\");", self.errorCallback, resourcePath];
-			[sound writeJavascript:jsString];
-		}		
+		[sound writeJavascript:[NSString stringWithFormat:@"Media.errorCallbacks['%@']();", self.resourcePath]];
 	}
 }
 
 - (void) dealloc
 {
 	self.player = nil;
-	self.successCallback = nil;
-	self.errorCallback = nil;
-	self.downloadCompleteCallback = nil;
 	self.sound = nil;
 	
 	[super dealloc];

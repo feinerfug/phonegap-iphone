@@ -13,9 +13,6 @@
 @interface AudioFile : NSObject
 <AVAudioPlayerDelegate>
 {
-	NSString* successCallback;
-	NSString* errorCallback;
-	NSString* downloadCompleteCallback;
 	NSString* resourcePath;
 	NSURL* resourceURL;
 	AVAudioPlayer* player;
@@ -26,9 +23,6 @@
 
 @property (nonatomic, copy) NSString* resourcePath;
 @property (nonatomic, copy) NSURL* resourceURL;
-@property (nonatomic, copy) NSString* successCallback;
-@property (nonatomic, copy) NSString* errorCallback;
-@property (nonatomic, copy) NSString* downloadCompleteCallback;
 @property (nonatomic, retain) AVAudioPlayer* player;
 @property (nonatomic, assign) Sound* sound;
 
