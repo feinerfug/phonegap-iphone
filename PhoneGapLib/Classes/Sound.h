@@ -25,6 +25,7 @@
 - (void) stop:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
 - (void) playAndFadeIn:(NSMutableArray*)arguments withDict:(NSMutableArray*)options;
 - (void) fadeOutAndStop:(NSMutableArray*)arguments withDict:(NSMutableArray*)options;
+- (void) discard:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
 - (NSURL*) urlForResource:(NSString*)resourcePath;
 - (AudioFile*) audioFileForResource:(NSString*) resourcePath;
 

@@ -27,6 +27,8 @@ function Media(src, successCallback, errorCallback, downloadCompleteCallback) {
     
     if (this.src != null) {
 	PhoneGap.exec("Sound.prepare", this.src, this.successCallback, this.errorCallback, this.downloadCompleteCallback);
+    } else { 
+	throw "Invalid state of media object";
     }
 }
 
@@ -36,18 +38,24 @@ Media.fadeOutCallbacks = {};
 Media.prototype.play = function(options) {
     if (this.src != null) {
 	PhoneGap.exec("Sound.play", this.src, options);
-    }
+    } else { 
+	throw "Invalid state of media object";
+    } 
 };
 
 Media.prototype.pause = function() {
     if (this.src != null) {
 	PhoneGap.exec("Sound.pause", this.src);
+    } else { 
+	throw "Invalid state of media object";
     }
 };
 
 Media.prototype.stop = function() {
     if (this.src != null) {
 	PhoneGap.exec("Sound.stop", this.src);
+    } else { 
+	throw "Invalid state of media object";
     }
 };
 
@@ -56,12 +64,25 @@ Media.prototype.playAndFadeIn = function(duration, callback) {
 	var that = this;
 	Media.fadeInCallbacks[this.src] = callback || function () {};
 	PhoneGap.exec("Sound.playAndFadeIn", this.src, duration);
+    } else { 
+	throw "Invalid state of media object";
     }
 };
 
 Media.prototype.fadeOutAndStop = function(duration, callback) {
-    if (this.src != null) {
+    if (this.src !== null) {
 	Media.fadeOutCallbacks[this.src] = callback || function () {};
 	PhoneGap.exec("Sound.fadeOutAndStop", this.src, duration);
+    } else { 
+	throw "Invalid state of media object";
     }
 };
+ 
+Media.prototype.discard = function() {
+    if(this.src !== null) {
+	this.src = null;
+	PhoneGap.exec("Sound.discard", this.src); 
+    } else { 
+	throw "Invalid state of media object";
+    }
+}

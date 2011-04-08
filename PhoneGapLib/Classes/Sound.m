@@ -101,6 +101,17 @@
 	[audioFile fadeOutAndStopAfter:duration]; 
 }
 
+- (void) discard:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options {
+	AudioFile* audioFile = [self getFromSoundCache:[arguments objectAtIndex:0]];
+	
+	if (audioFile == nil) {
+		return;
+	}
+	
+	[self removeFromSoundCache:audioFile];
+	[audioFile dealloc];
+}
+
 - (AudioFile*) audioFileFor:(NSMutableArray*)arguments {
   AudioFile* audioFile = [self audioFileForResource:[arguments objectAtIndex:0]];
   

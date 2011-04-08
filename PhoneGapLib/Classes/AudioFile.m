@@ -105,8 +105,6 @@
 			[sound writeJavascript:jsString];
 		}		
 	}
-	
-	[sound removeFromSoundCache:self];
 }
 
 - (void) dealloc
